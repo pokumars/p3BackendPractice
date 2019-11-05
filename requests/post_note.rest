@@ -1,0 +1,9 @@
+POST http://localhost:3001/notes
+//dont leave space between header and url
+content-type: application/json
+
+{
+    "content": "test smth 2",
+    "important": false
+}
+
