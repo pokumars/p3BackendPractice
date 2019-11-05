@@ -2,12 +2,15 @@ const express = require('express');
 const app = express();
 const cors = require('cors')
 const bodyParser = require ('body-parser');
+
+//serves static pages from build directory when end point is / or /index.html
+app.use(express.static('build')); 
+
 app.use(bodyParser.json());//must come before requestLogger since requestLogger needs the body
 app.use(cors())
 const morgan = require('morgan');
 
-//serves static pages from build directory when end point is / or /index.html
-app.use(express.static('build')); 
+
 
 //Define my own morgan token called body
 morgan.token('body', function (req, res) { return JSON.stringify(req.body)});
