@@ -6,6 +6,9 @@ app.use(bodyParser.json());//must come before requestLogger since requestLogger 
 app.use(cors())
 const morgan = require('morgan');
 
+//serves static pages from build directory when end point is / or /index.html
+app.use(express.static('build')); 
+
 //Define my own morgan token called body
 morgan.token('body', function (req, res) { return JSON.stringify(req.body)});
 
