@@ -4,7 +4,7 @@ const cors = require('cors')
 const bodyParser = require ('body-parser');
 
 //serves static pages from build directory when end point is / or /index.html
-app.use(express.static('build')); 
+app.use(express.static('build'));
 
 app.use(bodyParser.json());//must come before requestLogger since requestLogger needs the body
 app.use(cors())
