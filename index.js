@@ -10,8 +10,6 @@ app.use(bodyParser.json());//must come before requestLogger since requestLogger 
 app.use(cors())
 const morgan = require('morgan');
 
-
-
 //Define my own morgan token called body
 morgan.token('body', function (req, res) { return JSON.stringify(req.body)});
 
@@ -61,13 +59,13 @@ app.get('/',(req, res)=>{
   res.send('<h1>Hello world</h1>');
 });
 
-app.get('/notes',(req, res)=>{
+app.get('/api/notes',(req, res)=>{
   console.log(`get all ${notes.length} notes`);
   res.json(notes);
 });
 
 //get a specific note
-app.get('/notes/:id', (request,response)=> {
+app.get('/api/notes/:id', (request,response)=> {
   const id = Number(request.params.id);
   console.log('request id', id);
 
@@ -82,7 +80,7 @@ app.get('/notes/:id', (request,response)=> {
 });
 
 //Delete a note
-app.delete('/notes/:id', (request, response) => {
+app.delete('/api/notes/:id', (request, response) => {
   const id = Number(request.params.id);
   console.log('delete a note');
   notes = notes.filter((note) => note.id !== id);
@@ -98,7 +96,7 @@ const generateId= ()=>{
 }
 
 //Post a note
-app.post('/notes',(request, response) => {
+app.post('/api/notes',(request, response) => {
   const body = request.body;
   //console.log('headers--->', request.headers);
 
@@ -123,7 +121,7 @@ app.post('/notes',(request, response) => {
 });
 
 const unknownEndpoint = (request, response)=> {
-  response.status(404).send({ error: 'unknown endpoint' });
+  response.status(404).send({ error: 'unknown endpoint. Try /api/notes' });
 }
 
 app.use(unknownEndpoint);
