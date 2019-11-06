@@ -24,6 +24,7 @@ app.use(morgan((tokens, req, res)=> {
   ].join(' ')
 }));
 
+//we shall make our own middleware to log stuff
 const requestLogger = (request, response, next)=> {
   console.log('Method:', request.method);
   console.log('Path:  ', request.path);
