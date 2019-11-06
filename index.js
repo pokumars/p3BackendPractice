@@ -1,7 +1,10 @@
 const express = require('express');
+require('dotenv').config();//It's important that dotenv gets imported before the note model
+const Note = require('./models/note');
 const app = express();
 const cors = require('cors')
 const bodyParser = require ('body-parser');
+
 
 //serves static pages from build directory when end point is / or /index.html
 app.use(express.static('build'));
@@ -60,14 +63,19 @@ app.get('/',(req, res)=>{
   res.send('<h1>Hello world</h1>');
 });
 
-app.get('/api/notes',(req, res)=>{
-  console.log(`get all ${notes.length} notes`);
-  res.json(notes);
+app.get('/api/notes',(request, response)=>{
+  Note.find({})
+  .then(notes => {
+    response.json(notes.map(note => note.toJSON()));
+  });
+  /*console.log(`get all ${notes.length} notes`);
+  res.json(notes);*/
 });
 
 //get a specific note
 app.get('/api/notes/:id', (request,response)=> {
-  const id = Number(request.params.id);
+  const id = request.params.id;
+  /*const id = Number(request.params.id);
   console.log('request id', id);
 
   const note = notes.find((note) =>note.id === id);
@@ -77,7 +85,11 @@ app.get('/api/notes/:id', (request,response)=> {
   response.json(note);
  }else {
    response.status(404).end()
- }
+ }*/
+ Note.findById(id)
+ .then(note => {
+   response.json(note.toJSON());
+ })
 });
 
 //Delete a note
@@ -99,25 +111,26 @@ const generateId= ()=>{
 //Post a note
 app.post('/api/notes',(request, response) => {
   const body = request.body;
-  //console.log('headers--->', request.headers);
 
-  if(!body.content){
-    return response.status(400).json({
-      error: 'missing content'
-    })
+  if(!body.content|| body.content === undefined){
+    return response.status(400).json({ error: 'missing content' });
   }
 
-  const note = {
-    content: body.content,
-    important : body.important || false,
-    date: new Date(),
-    id: generateId(),
-  }
+  const note = new Note(
+    {
+      content: body.content,
+      important : body.important || false,
+      date: new Date(),
+    }
+  )
 
-  console.log('post new note \n', note);
+  note.save()
+  .then(savedNote => {
+    response.json(savedNote.toJSON);
+  });
 
-  notes= notes.concat(note);
-
+  //console.log('post new note \n', note);
+  //notes= notes.concat(note);
   response.json(note);
 });
 
@@ -126,11 +139,7 @@ const unknownEndpoint = (request, response)=> {
 }
 
 app.use(unknownEndpoint);
-//const port = 3001;
-//app.listen(port);
-//console.log(`Server running on port ${port}`);
 const PORT = process.env.PORT || 3001
 app.listen(PORT, ()=> {
   console.log(`Server running on port ${PORT}`)
 });
-

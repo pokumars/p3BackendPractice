@@ -18,6 +18,7 @@ const noteSchema = new mongoose.Schema({
     important: Boolean,
 });
 
+//create an object(or 'class') called Note based on the schema (or interface) noteSchema
 const Note = mongoose.model('Note', noteSchema);
 
 const note = new Note({
