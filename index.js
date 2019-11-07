@@ -1,17 +1,18 @@
 const express = require('express');
 require('dotenv').config();//It's important that dotenv gets imported before the note model
 const Note = require('./models/note');
-const app = express();
-const cors = require('cors')
+const cors = require('cors');
+const morgan = require('morgan');
 const bodyParser = require ('body-parser');
 
+
+const app = express();
+app.use(bodyParser.json());//must come before requestLogger since requestLogger needs the body
 
 //serves static pages from build directory when end point is / or /index.html
 app.use(express.static('build'));
 
-app.use(bodyParser.json());//must come before requestLogger since requestLogger needs the body
-app.use(cors())
-const morgan = require('morgan');
+app.use(cors());
 
 //Define my own morgan token called body
 morgan.token('body', function (req, res) { return JSON.stringify(req.body)});
@@ -35,29 +36,7 @@ const requestLogger = (request, response, next)=> {
   console.log('---');
   next();
 }
-
 app.use(requestLogger);
-
-let notes = [
-  {
-    id: 1,
-    content: "HTML is easy",
-    date: "2019-05-30T17:30:31.098Z",
-    important: true
-  },
-  {
-    id: 2,
-    content: "Browser can execute only Javascript",
-    date: "2019-05-30T18:39:34.091Z",
-    important: false
-  },
-  {
-    id: 3,
-    content: "GET and POST are the most important methods of HTTP protocol xyz",
-    date: "2019-05-30T19:20:14.298Z",
-    important: true
-  }
-]
 
 app.get('/',(req, res)=>{
   res.send('<h1>Hello world</h1>');
@@ -73,43 +52,54 @@ app.get('/api/notes',(request, response)=>{
 });
 
 //get a specific note
-app.get('/api/notes/:id', (request,response)=> {
+app.get('/api/notes/:id', (request,response, next)=> {
   const id = request.params.id;
-  /*const id = Number(request.params.id);
-  console.log('request id', id);
-
-  const note = notes.find((note) =>note.id === id);
-
- if (note) {
-  console.log(note);
-  response.json(note);
- }else {
-   response.status(404).end()
- }*/
  Note.findById(id)
  .then(note => {
-   response.json(note.toJSON());
+   if(note){
+    response.json(note.toJSON());
+   }
+   else{
+     response.status(404).end()
+   }
  })
+ .catch(error => next(error));
+ // If the next function is called with a parameter, then the execution
+ // will continue to the error handler middleware.
+
+});
+
+//update a note
+app.put('/api/notes/:id', (request, response) => {
+  const body = request.body;
+  const id = request.params.id
+
+  const note = {
+    content: body.content,
+    important: body.important,
+  }
+
+  Note.findByIdAndUpdate(id, note, { new: true })
+  .then(updatedNote => {
+    response.json(updatedNote.toJSON())
+  })
+  .catch(error => next(error))
+
 });
 
 //Delete a note
 app.delete('/api/notes/:id', (request, response) => {
-  const id = Number(request.params.id);
-  console.log('delete a note');
-  notes = notes.filter((note) => note.id !== id);
+  const id = request.params.id
 
-  response.status(204).end();
+  Note.findByIdAndRemove(id)
+  .then(result => {
+    response.status(204).end()
+  })
+  .catch(error => next(error));
 });
 
-const generateId= ()=>{
-  const maxId = notes.length > 0
-  ? Math.max(... notes.map((n) => n.id))
-  : 0
-  return maxId + 1;
-}
-
 //Post a note
-app.post('/api/notes',(request, response) => {
+app.post('/api/notes',(request, response, next) => {
   const body = request.body;
 
   if(!body.content|| body.content === undefined){
@@ -125,13 +115,11 @@ app.post('/api/notes',(request, response) => {
   )
 
   note.save()
-  .then(savedNote => {
-    response.json(savedNote.toJSON);
-  });
-
-  //console.log('post new note \n', note);
-  //notes= notes.concat(note);
-  response.json(note);
+  .then(savedNote => savedNote.toJSON())
+  .then(savedAndFormattedNote => {
+    response.json(savedAndFormattedNote);
+  })
+  .catch(error => next(error));
 });
 
 const unknownEndpoint = (request, response)=> {
@@ -139,6 +127,22 @@ const unknownEndpoint = (request, response)=> {
 }
 
 app.use(unknownEndpoint);
+
+//errorHandler is used only when next is called with a parameter of error
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
+
+  if(error.name==='CastError' && error.kind === 'ObjectId'){
+    return response.status(400).send({ error: 'malformatted id'});
+  }
+  else if(error.name === 'ValidationError'){
+    return response.status(400).json({ error: error.message })
+  }
+
+  next(error)
+}
+app.use(errorHandler);
+
 const PORT = process.env.PORT || 3001
 app.listen(PORT, ()=> {
   console.log(`Server running on port ${PORT}`)
