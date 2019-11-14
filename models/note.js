@@ -14,12 +14,21 @@ const noteSchema = new mongoose.Schema({
     required: true
   },
   important: Boolean,
+  user: {
+    //The type of the field is ObjectId that references user-style documents.
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  }
 });
 
 //change noteSchema's toJSON method so it doesnt return _id(obj) but rather id(String)
 noteSchema.set('toJSON', {
   transform: (document, returnedObject) => {
     returnedObject.id = returnedObject._id.toString();
+    if (process.env.NODE_ENV === 'test') {
+      returnedObject.date = Date.parse(returnedObject.date);
+    }
+    
     delete returnedObject._id;
     delete returnedObject.__v;
   }
