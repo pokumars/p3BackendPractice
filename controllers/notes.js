@@ -1,6 +1,10 @@
 const notesRouter = require('express').Router();
 const Note = require('../models/note');
 const User = require('../models/user');
+const jwt = require('jsonwebtoken');
+
+
+
   
 notesRouter.get('/',async (request, response) => {
   const notes = await Note
@@ -57,28 +61,45 @@ notesRouter.delete('/:id', async (request, response, next) => {
     next(exception);
   } 
 });
+
+const getTokenFrom = request => {
+  const authorization = request.get('authorization');
+
+  if(authorization && authorization.toLowerCase().startsWith('bearer ')){
+    return authorization.substring(7);
+  }
+
+  return null;
+};
   
 //Post a note
 notesRouter.post('/', async (request, response, next) => {
   const body = request.body;
-  console.log(request.body);
-
-  //find the user making the post from db
-  const user = await User.findById(body.userId);
-  console.log(user);
-  /*if(!body.content|| body.content === undefined){
-    return response.status(400).json({ error: 'missing content' });
-  }*/
-  const note = new Note(
-    {
-      content: body.content,
-      important : body.important || false,
-      date: new Date(),
-      user: user._id
-    }
-  );
+  const token = getTokenFrom(request);  
 
   try {
+    //jwt.verify Returns the payload decoded if the signature is valid. If not, it will throw the error
+    //The object decoded from the token contains the username and id fields, which tells the server who made the request
+    const decodedToken = jwt.verify(token, process.env.SECRET);
+
+    if(!token || !decodedToken.id){
+      return response.status(401).json({ error: 'token missing or invalid' });
+    }
+
+    //find the user making the post from db
+    const user = await User.findById(body.user);
+    //console.log('user --->', user);
+   
+    const note = new Note(
+      {
+        content: body.content,
+        important : body.important || false,
+        date: new Date(),
+        user: user._id
+      }
+    );
+
+  
     const savedNote = await note.save();
 
     //take the savedNotes id and add it to the notes of the user who saved it
