@@ -5,17 +5,17 @@ const jwt = require('jsonwebtoken');
 
 
 
-  
+
 notesRouter.get('/',async (request, response) => {
   const notes = await Note
     .find({})
     .populate('user', { username: 1, name: 1 });
     //user here has to be the same as the type, and go by
     // the same name in the post request
-  
+
   response.json(notes.map(note => note.toJSON()));
 });
-  
+
 //get a specific note
 notesRouter.get('/:id', async (request,response, next) => {
   try{
@@ -30,36 +30,36 @@ notesRouter.get('/:id', async (request,response, next) => {
   // If the next function is called with a parameter, then the execution
   // will continue to the error handler middleware.
     next(exception);
-  }  
+  }
 });
-  
+
 //update a note
 notesRouter.put('/:id', (request, response, next) => {
   const body = request.body;
   const id = request.params.id;
-  
+
   const note = {
     content: body.content,
     important: body.important,
   };
-  
+
   Note.findByIdAndUpdate(id, note, { new: true })
     .then(updatedNote => {
       response.json(updatedNote.toJSON());
     })
     .catch(error => next(error));
-  
+
 });
-  
+
 //Delete a note
-notesRouter.delete('/:id', async (request, response, next) => { 
+notesRouter.delete('/:id', async (request, response, next) => {
   try{
     await Note.findByIdAndRemove(request.params.id);
     response.status(204).end();
   }
   catch(exception){
     next(exception);
-  } 
+  }
 });
 
 const getTokenFrom = request => {
@@ -71,11 +71,11 @@ const getTokenFrom = request => {
 
   return null;
 };
-  
+
 //Post a note
 notesRouter.post('/', async (request, response, next) => {
   const body = request.body;
-  const token = getTokenFrom(request);  
+  const token = getTokenFrom(request);
 
   try {
     //jwt.verify Returns the payload decoded if the signature is valid. If not, it will throw the error
@@ -87,9 +87,9 @@ notesRouter.post('/', async (request, response, next) => {
     }
 
     //find the user making the post from db
-    const user = await User.findById(body.user);
+    const user = await User.findById(decodedToken.id);// body.user
     //console.log('user --->', user);
-   
+
     const note = new Note(
       {
         content: body.content,
@@ -99,7 +99,7 @@ notesRouter.post('/', async (request, response, next) => {
       }
     );
 
-  
+
     const savedNote = await note.save();
 
     //take the savedNotes id and add it to the notes of the user who saved it
@@ -114,4 +114,3 @@ notesRouter.post('/', async (request, response, next) => {
 });
 
 module.exports= notesRouter;
-  
