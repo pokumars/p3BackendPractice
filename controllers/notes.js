@@ -43,7 +43,7 @@ notesRouter.put('/:id', (request, response, next) => {
     important: body.important,
   };
 
-  Note.findByIdAndUpdate(id, note, { new: true })
+  Note.findByIdAndUpdate(id, note, { new: true, useFindAndModify:false })
     .then(updatedNote => {
       response.json(updatedNote.toJSON());
     })
