@@ -8,10 +8,16 @@ const app = require('../app');
 
 const api =supertest(app);
 
+/*{
+  "username" : "michelin",
+  "password": "atyrecompany",
+  "name": "Michelin Mascot"
+}*/
+
 beforeEach(async () => {
   await User.deleteMany({});
   const user = new User({ username: 'root', password: 'sekret' });
-  
+
   await user.save();
 });
 
