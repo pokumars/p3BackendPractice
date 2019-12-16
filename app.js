@@ -31,9 +31,17 @@ app.use(bodyParser.json());//must come before requestLogger since requestLogger 
 app.use(middleware.myCustomMorganLog);
 app.use(middleware.requestLogger);
 
+
 app.use('/api/notes', notesRouter);
 app.use('/api/users', usersRouter);
 app.use('/api/login', loginRouter);
+
+if (process.env.NODE_ENV === 'test') {
+  const testingRouter = require('./controllers/testing');
+  app.use('/api/testing', testingRouter);
+  console.log('---------------->-----------> In test mode');
+}
+
 
 app.use(middleware.unknownEndpoint);
 app.use(middleware.errorHandler);

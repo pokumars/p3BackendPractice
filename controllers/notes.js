@@ -4,8 +4,6 @@ const User = require('../models/user');
 const jwt = require('jsonwebtoken');
 
 
-
-
 notesRouter.get('/',async (request, response) => {
   const notes = await Note
     .find({})

@@ -8,6 +8,7 @@
     "test:user_api": "npx jest tests/user_api.test.js --runInBand",
     "test": "cross-env NODE_ENV=test jest --verbose",
     "start": "cross-env NODE_ENV=production node index.js",
+    "start:test": "cross-env NODE_ENV=test node index.js",
     "watch": "cross-env NODE_ENV=development nodemon index.js",
     "build:ui": "rm -rf build && cd ../reactHelsinkiUni/part2/part2practice/ && npm run build --prod && cp -r build ../../../p3Practice/",
     "deploy": "git push heroku master",

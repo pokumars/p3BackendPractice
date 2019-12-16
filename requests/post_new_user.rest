@@ -1,0 +1,9 @@
+POST http://localhost:3001/api/users
+//dont leave space between header and url
+content-type: application/json
+
+{
+  "name": "Michelin Mascot",
+  "username": "michelin",
+  "password":"atyrecompany"
+}
