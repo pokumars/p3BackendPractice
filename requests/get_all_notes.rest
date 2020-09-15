@@ -1,1 +1,4 @@
 GET http://localhost:3001/api/note
+
+###
+GET http://localhost:3002/notes

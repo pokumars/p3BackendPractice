@@ -7,3 +7,12 @@ content-type: application/json
     "important": false
 }
 
+###
+POST http://localhost:3002/notes
+//dont leave space between header and url
+content-type: application/json
+
+{
+    "content": "teabag",
+    "important": false
+}
